@@ -1,0 +1,26 @@
+# Shared configuration inherited by ALL services (applies before the
+# service-specific file, e.g. order-service.yml, is layered on top).
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.ecommerce: DEBUG
+
+# Shared JWT signing secret. user-service SIGNS tokens with this;
+# gateway-service VERIFIES tokens with this — they must match exactly.
+# This is here (in the shared application.yml) specifically so both
+# services get the identical value from one place. In production, replace
+# this whole block with a reference to a real secrets manager and never
+# commit an actual signing secret to source control.
+app:
+  jwt:
+    secret: "ecommerce-demo-super-secret-key-change-me-before-any-real-deployment-32bytes+"
+    expiration-ms: 3600000 # 1 hour

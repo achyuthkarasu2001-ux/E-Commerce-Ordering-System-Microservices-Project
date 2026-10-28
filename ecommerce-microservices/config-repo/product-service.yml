@@ -1,0 +1,3 @@
+app:
+  catalog:
+    default-page-size: 20

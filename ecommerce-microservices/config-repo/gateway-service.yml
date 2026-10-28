@@ -1,0 +1,4 @@
+app:
+  rate-limit:
+    requests-per-window: 20
+    window-seconds: 10

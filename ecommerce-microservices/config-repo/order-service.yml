@@ -1,0 +1,3 @@
+app:
+  order:
+    max-items-per-order: 50

@@ -1,0 +1,107 @@
+ server:
+  port: 8084
+
+spring:
+  application:
+    name: order-service
+  config:
+    import: "optional:configserver:http://localhost:8888"
+  datasource:
+    url: jdbc:postgresql://localhost:5435/orderdb
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+# --- Resilience4j: one CircuitBreaker + Retry + Bulkhead instance per downstream dependency ---
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 2s
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+      productService:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+      inventoryService:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+
+  retry:
+    instances:
+      userService:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - feign.RetryableException
+      productService:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+      inventoryService:
+        max-attempts: 2
+        wait-duration: 300ms
+        # Fewer retries for stock reservation to avoid double-reserving on
+        # a slow-but-successful write; combine with idempotency keys in
+        # a real system.
+
+  bulkhead:
+    instances:
+      userService:
+        max-concurrent-calls: 10
+        max-wait-duration: 500ms
+      productService:
+        max-concurrent-calls: 10
+        max-wait-duration: 500ms
+      inventoryService:
+        max-concurrent-calls: 10
+        max-wait-duration: 500ms
+
+  timelimiter:
+    instances:
+      userService:
+        timeout-duration: 2s
+      productService:
+        timeout-duration: 2s
+      inventoryService:
+        timeout-duration: 2s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh,circuitbreakers,retries,bulkheads
+  health:
+    circuitbreakers:
+      enabled: true

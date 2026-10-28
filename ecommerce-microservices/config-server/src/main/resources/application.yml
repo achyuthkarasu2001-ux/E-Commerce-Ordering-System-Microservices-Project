@@ -1,0 +1,26 @@
+ server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # Path to the folder containing per-service yml files (application.yml, order-service.yml, ...)
+          # Adjust the relative path if you run the jar from a different working directory.
+          search-locations: file:./config-repo
+        # To use Git instead of native filesystem, comment out "native" above and use:
+        # git:
+        #   uri: https://github.com/your-org/ecommerce-config-repo
+        #   default-label: main
+        #   clone-on-start: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,refresh,info

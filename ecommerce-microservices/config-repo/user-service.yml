@@ -1,0 +1,6 @@
+# Config-server-managed overrides for user-service.
+# Anything here overrides user-service's local application.yml when the
+# config server is reachable. Demonstrates centralizing config outside the jar.
+app:
+  feature-flags:
+    allow-self-registration: true
